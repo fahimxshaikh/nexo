@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: nexo-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  server:
+    build: ./server
+    container_name: nexo-server
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - MONGO_URI=mongodb://mongo:27017/nexo
+      - JWT_SECRET=supersecretkey
+      - FRONTEND_URL=http://localhost:5173
+    depends_on:
+      - mongo
+
+  client:
+    build: ./client
+    container_name: nexo-client
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://server:4000/api
+    depends_on:
+      - server
+
+volumes:
+  mongo_data:
